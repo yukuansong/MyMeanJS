@@ -1,0 +1,145 @@
+[object Object],[object Object],[object Object]req);
+    req.session = new Session(req);
+    req.session.cookie = new Cookie(cookieOptions);
+
+    if (cookieOptions.secure === 'auto') {
+      req.session.cookie.secure = issecure(req, trustProxy);
+    }
+  }ers.push([type, listener])
+
+      return this
+    }sCode !== args[0]) {
+        args[0] = this.statusCode
+        args.length = 1
+      }
+    }
+
+    prevWriteHead.apply(this, args);
+  }      ret = true;
+          return ret;
+        }
+
+        var contentLength = Number(res.getHeader('Content-Length'));
+
+        if (!isNaN(contentLength) && contentLength > 0) {
+          // measure chunk
+          chunk = !Buffer.isBuffer(chunk)
+            ? new Buffer(chunk, encoding)
+            : chunk;
+          encoding = undefined;
+
+          if (chunk.length !== 0) {
+            debug('split response');
+            ret = _write.call(res, chunk.slice(0, chunk.length - 1));
+            chunk = chunk.slice(chunk.length - 1, chunk.length);
+            return ret;
+          }
+        }
+
+        ret = _write.call(res, chunk, encoding);
+        sync = false;
+
+        return ret;
+      }
+
+      if (shouldDestroy(req)) {
+        // destroy session
+        debug('destroying');
+        store.destroy(req.sessionID, function ondestroy(err) {
+          if (err) {
+            defer(next, err);
+          }
+
+          debug('destroyed');
+          writeend();
+        });
+
+        return writetop();
+      }
+
+      // no session to save
+      if (!req.session) {
+        debug('no session');
+        return _end.call(res, chunk, encoding);
+      }
+
+      // touch session
+      req.session.touch();
+
+      if (shouldSave(req)) {
+        req.session.save(function onsave(err) {
+          if (err) {
+            defer(next, err);
+          }
+
+          writeend();
+        });
+
+        return writetop();
+      } else if (storeImplementsTouch && shouldTouch(req)) {
+        // store implements touch method
+        debug('touching');
+        store.touch(req.sessionID, req.session, function ontouch(err) {
+          if (err) {
+            defer(next, err);
+          }
+
+          debug('touched');
+          writeend();
+        });
+
+        return writetop();
+      }
+
+      return _end.call(res, chunk, encoding);
+    }t, and if we're already
+  // reading, then it's unnecessary.
+  if (state.ended || state.reading) {
+    doRead = false;
+    debug('reading or ended', doRead);
+  }
+
+  if (doRead) {
+    debug('do read');
+    state.reading = true;
+    state.sync = true;
+    // if the length is currently zero, then we *need* a readable event.
+    if (state.length === 0)
+      state.needReadable = true;
+    // call internal read method
+    this._read(state.highWaterMark);
+    state.sync = false;
+  }
+
+  // If _read pushed data synchronously, then `reading` will be false,
+  // and we need to re-evaluate how much data we can return to the user.
+  if (doRead && !state.reading)
+    n = howMuchToRead(nOrig, state);
+
+  var ret;
+  if (n > 0)
+    ret = fromList(n, state);
+  else
+    ret = null;
+
+  if (ret === null) {
+    state.needReadable = true;
+    n = 0;
+  }
+
+  state.length -= n;
+
+  // If we have nothing in the buffer, then we want to know
+  // as soon as we *do* get something into the buffer.
+  if (state.length === 0 && !state.ended)
+    state.needReadable = true;
+
+  // If we tried to read() past the EOF, then emit end on the next tick.
+  if (nOrig !== n && state.ended && state.length === 0)
+    endReadable(this);
+
+  if (ret !== null)
+    this.emit('data', ret);
+
+  return ret;
+}
